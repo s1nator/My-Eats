@@ -49,3 +49,9 @@ class OrderRead(BaseModel):
     total_price: Decimal
     created_at: datetime
     items: list[OrderItemRead]
+
+
+class OrderStatusUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: OrderStatus

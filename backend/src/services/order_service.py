@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models.menu import MenuItem
-from src.models.order import Order, OrderItem
+from src.models.order import Order, OrderItem, OrderStatus
 from src.schemas.order import OrderCreate
 
 
@@ -81,3 +81,38 @@ async def create_order(session: AsyncSession, order_in: OrderCreate) -> Order:
     )
     assert created_order is not None
     return created_order
+
+
+async def get_orders(
+    session: AsyncSession,
+    order_status: OrderStatus | None = None,
+) -> list[Order]:
+    statement = select(Order).options(selectinload(Order.items)).order_by(Order.id.desc())
+
+    if order_status is not None:
+        statement = statement.where(Order.status == order_status)
+
+    result = await session.scalars(statement)
+    return list(result.all())
+
+
+async def get_order(session: AsyncSession, order_id: int) -> Order | None:
+    return await session.scalar(
+        select(Order)
+        .options(selectinload(Order.items))
+        .where(Order.id == order_id)
+    )
+
+
+async def update_order_status(
+    session: AsyncSession,
+    order: Order,
+    order_status: OrderStatus,
+) -> Order:
+    order.status = order_status
+    await session.commit()
+    return order
+
+
+async def cancel_order(session: AsyncSession, order: Order) -> Order:
+    return await update_order_status(session, order, OrderStatus.CANCELLED)
