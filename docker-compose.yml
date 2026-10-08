@@ -23,6 +23,10 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    networks:
+      default:
+        aliases:
+          - backend-service
     restart: unless-stopped
     env_file:
       - .env

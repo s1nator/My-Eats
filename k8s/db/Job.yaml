@@ -3,17 +3,37 @@ kind: Job
 metadata:
   name: backend-migration-job
 spec:
-  backofflimit: 3
+  backoffLimit: 5
   ttlSecondsAfterFinished: 300
   template:
     spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:16-alpine
+        envFrom:
+        - secretRef:
+            name: db-secret
+        command:
+        - /bin/sh
+        - -c
+        - |
+          until pg_isready \
+            -h db-service \
+            -p 5432 \
+            -U "$POSTGRES_USER" \
+            -d "$POSTGRES_DB"; do
+            echo "PostgreSQL is not ready yet"
+            sleep 3
+          done
+
       containers:
       - name: backend-migration
         image: my-eats-backend
         command: ["/bin/sh", "-c"]
-        args: ["alembic upgrade head && python seed.py"]
-      envFrom:
-      - configMapRef:
-          name: backend-configmap
-      - secretRef:
-          name: backend-secret
+        args:
+        - alembic upgrade head && python seed.py
+        envFrom:
+        - secretRef:
+            name: backend-secret
+
+      restartPolicy: Never

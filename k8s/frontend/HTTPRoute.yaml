@@ -5,14 +5,15 @@ metadata:
 spec:
   parentRefs:
   - name: app-gateway
+    sectionName: http
   rules:
   - matches:
-    -path:
+    - path:
         type: PathPrefix
         value: /api
     backendRefs:
     - name: backend-service
-    port: 8000
+      port: 8000
 
   - matches:
     - path:
@@ -20,4 +21,4 @@ spec:
         value: /
     backendRefs:
     - name: frontend-service
-      port: 8080
+      port: 80

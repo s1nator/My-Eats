@@ -21,4 +21,4 @@ spec:
       - image: my-eats-frontend
         name: frontend-1
         ports:
-        - containerPort: 8080
+        - containerPort: 80

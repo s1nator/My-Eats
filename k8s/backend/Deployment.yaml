@@ -22,3 +22,13 @@ spec:
         name: backend-1
         ports:
         - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: DATABASE_URL
+        - name: PORT
+          value: "8000"
+        - name: LOG_LEVEL
+          value: "INFO"
