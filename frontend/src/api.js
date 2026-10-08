@@ -63,7 +63,8 @@ export function changeOrderStatus(orderId, status) {
 }
 
 export function cancelOrder(orderId) {
-  return request(`/api/v1/orders/${orderId}`, {
-    method: "DELETE",
+  return request(`/api/v1/orders/${orderId}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status: "cancelled" }),
   });
 }

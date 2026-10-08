@@ -112,7 +112,3 @@ async def update_order_status(
     order.status = order_status
     await session.commit()
     return order
-
-
-async def cancel_order(session: AsyncSession, order: Order) -> Order:
-    return await update_order_status(session, order, OrderStatus.CANCELLED)

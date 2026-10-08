@@ -6,7 +6,6 @@ from src.schemas.order import OrderCreate, OrderRead, OrderStatusUpdate
 from src.services.order_service import (
     MenuItemsNotFoundError,
     MenuItemsUnavailableError,
-    cancel_order,
     create_order,
     get_order,
     get_orders,
@@ -65,16 +64,3 @@ async def change_order_status(
     order = await get_order_or_404(session, order_id)
     updated_order = await update_order_status(session, order, status_in.status)
     return OrderRead.model_validate(updated_order)
-
-
-@router.delete("/{order_id}", response_model=OrderRead)
-async def cancel_order_by_id(order_id: int, session: DbSession) -> OrderRead:
-    order = await get_order_or_404(session, order_id)
-    if order.status == OrderStatus.CANCELLED:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Order is already cancelled",
-        )
-
-    cancelled_order = await cancel_order(session, order)
-    return OrderRead.model_validate(cancelled_order)
