@@ -19,6 +19,7 @@ spec:
     spec:
       containers:
       - image: my-eats-backend
+        imagePullPolicy: IfNotPresent
         name: backend-1
         ports:
         - containerPort: 8000

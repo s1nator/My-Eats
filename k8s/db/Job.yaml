@@ -29,6 +29,7 @@ spec:
       containers:
       - name: backend-migration
         image: my-eats-backend
+        imagePullPolicy: IfNotPresent
         command: ["/bin/sh", "-c"]
         args:
         - alembic upgrade head && python seed.py
