@@ -2,11 +2,11 @@ import logging
 import os
 import socket
 import sys
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-from pythonjsonlogger import jsonlogger
+from pythonjsonlogger.json import JsonFormatter
 
 from fastapi import FastAPI
 
@@ -33,7 +33,7 @@ class StructuredLogFilter(logging.Filter):
 handler = logging.StreamHandler(sys.stdout)
 handler.addFilter(StructuredLogFilter())
 handler.setFormatter(
-    jsonlogger.JsonFormatter(
+    JsonFormatter(
         "%(timestamp)s %(level)s %(message)s %(service_name)s "
         "%(service_version)s %(service_environment)s "
         "%(service_hostname)s %(service_process_id)s",
@@ -63,7 +63,7 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Application started")
 
     yield
