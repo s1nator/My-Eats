@@ -1,0 +1,13 @@
+role: "DaemonSet"
+
+customConfig:
+  sources:
+    kubernetes_logs:
+      type: kubernetes_logs
+
+  sinks:
+    vl_out:
+      type: victoria_logs
+      inputs:
+        - kubernetes_logs
+      address: "http://victoria-logs-single-server.victoria-logs.svc.cluster.local:9428"

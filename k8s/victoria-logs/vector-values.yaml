@@ -1,0 +1,44 @@
+role: "Agent"
+
+service:
+  enabled: false
+
+serviceHeadless:
+  enabled: false
+
+customConfig:
+  data_dir: "/vector-data-dir"
+
+  sources:
+    k8s_logs:
+      type: "kubernetes_logs"
+  
+  transforms:
+    enrich_logs:
+      type: "remap"
+      inputs:
+        - "k8s_logs"
+      source: |
+        .namespace = .kubernetes.pod_namespace
+        .environment.name = .kubernetes.pod_labels.environment
+        .service.name = .kubernetes.pod_labels.service
+        .service.version = .kubernetes.pod_labels.version
+        .pod = .kubernetes.pod_name
+        .container = .kubernetes.container_name
+        del(.kubernetes)
+
+  sinks:
+    victoria_logs:
+      type: "elasticsearch"
+      inputs:
+        - "enrich_logs"
+      endpoints:
+        - "http://victoria-logs-single-server.victoria-logs.svc.cluster.local:9428/insert/elasticsearch/"
+      mode: "bulk"
+      api_version: "v8"
+      healthcheck:
+        enabled: false
+      query:
+        _stream_fields: "namespace,pod,container,environment.name,service.name,service.version"
+        _msg_field: "message"
+        _time_field: "timestamp"
