@@ -1,8 +1,12 @@
 import asyncio
 import logging
+import os
+import socket
 import sys
+from datetime import datetime, timezone
 from decimal import Decimal
 
+from pythonjsonlogger.json import JsonFormatter
 from sqlalchemy import select
 
 from src.core.config import settings
@@ -10,12 +14,38 @@ from src.core.database import async_session_factory, engine
 from src.models.menu import MenuItem
 
 
-logging.basicConfig(
-    level=settings.log_level,
-    format="%(asctime)s | %(levelname)s | %(message)s",
-    stream=sys.stdout,
-    force=True,
+class StructuredLogFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.timestamp = datetime.now(timezone.utc).isoformat(
+            timespec="milliseconds"
+        ).replace("+00:00", "Z")
+        record.level = record.levelname
+        record.service_name = "my-eats-backend-seed"
+        record.service_version = "1.0.0"
+        record.service_environment = os.getenv("ENVIRONMENT", "production")
+        record.service_hostname = socket.gethostname()
+        record.service_process_id = os.getpid()
+        return True
+
+
+handler = logging.StreamHandler(sys.stdout)
+handler.addFilter(StructuredLogFilter())
+handler.setFormatter(
+    JsonFormatter(
+        "%(timestamp)s %(level)s %(message)s %(service_name)s "
+        "%(service_version)s %(service_environment)s "
+        "%(service_hostname)s %(service_process_id)s",
+        rename_fields={
+            "service_name": "service.name",
+            "service_version": "service.version",
+            "service_environment": "service.environment",
+            "service_hostname": "service.hostname",
+            "service_process_id": "service.process_id",
+        },
+    )
 )
+
+logging.basicConfig(level=settings.log_level, handlers=[handler], force=True)
 
 logger = logging.getLogger(__name__)
 
