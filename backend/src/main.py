@@ -5,6 +5,7 @@ import sys
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from pythonjsonlogger.json import JsonFormatter
 
@@ -78,6 +79,8 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+Instrumentator().instrument(app).expose(app)
 
 app.include_router(menu_router, prefix="/api/v1")
 app.include_router(orders_router, prefix="/api/v1")

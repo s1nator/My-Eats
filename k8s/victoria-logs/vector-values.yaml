@@ -19,12 +19,56 @@ customConfig:
       inputs:
         - "k8s_logs"
       source: |
+        parsed, parse_error = parse_json(.message)
+        if parse_error == null && is_object(parsed) {
+          . = merge!(., parsed)
+        } else {
+          klog, klog_error = parse_regex(
+            .message,
+            r'^(?P<severity>[IWEF])\d{4}\s+\S+\s+\d+\s+[^:\s]+:\d+\]\s+(?P<message>.*)$'
+          )
+          if klog_error == null {
+            .level = if klog.severity == "I" {
+              "INFO"
+            } else if klog.severity == "W" {
+              "WARNING"
+            } else if klog.severity == "E" {
+              "ERROR"
+            } else {
+              "CRITICAL"
+            }
+            .message = klog.message
+          }
+        }
+
+        if exists(."service.name") {
+          .service.name = ."service.name"
+          del(."service.name")
+        }
+        if exists(."service.version") {
+          .service.version = ."service.version"
+          del(."service.version")
+        }
+        if exists(."service.environment") {
+          .service.environment = ."service.environment"
+          del(."service.environment")
+        }
+
         .namespace = .kubernetes.pod_namespace
-        .environment.name = .kubernetes.pod_labels.environment
-        .service.name = .kubernetes.pod_labels.service
-        .service.version = .kubernetes.pod_labels.version
+        if exists(.kubernetes.pod_labels.environment) && !is_null(.kubernetes.pod_labels.environment) {
+          .environment.name = .kubernetes.pod_labels.environment
+        }
+        if exists(.kubernetes.pod_labels.service) && !is_null(.kubernetes.pod_labels.service) && .kubernetes.pod_labels.service != "" {
+          .service.name = .kubernetes.pod_labels.service
+        }
+        if exists(.kubernetes.pod_labels.version) && !is_null(.kubernetes.pod_labels.version) {
+          .service.version = .kubernetes.pod_labels.version
+        }
         .pod = .kubernetes.pod_name
         .container = .kubernetes.container_name
+        if !exists(.service.name) || is_null(.service.name) || .service.name == "" {
+          .service.name = .container
+        }
         del(.kubernetes)
 
   sinks:

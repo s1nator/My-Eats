@@ -16,13 +16,18 @@ spec:
     metadata:
       labels:
         app: backend-1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
-      - image: my-eats-backend
+      - image: my-eats-backend:v6
         imagePullPolicy: IfNotPresent
         name: backend-1
         ports:
-        - containerPort: 8000
+        - name: http
+          containerPort: 8000
         env:
         - name: DATABASE_URL
           valueFrom:

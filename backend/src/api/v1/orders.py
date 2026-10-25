@@ -2,6 +2,13 @@ from fastapi import APIRouter, HTTPException, Query, status
 
 from src.api.deps import DbSession
 from src.models.order import Order, OrderStatus
+from src.metrics import (
+    order_creation_duration_seconds,
+    order_creation_errors_total,
+    order_status_changes_total,
+    orders_created_total,
+    orders_revenue_total,
+)
 from src.schemas.order import OrderCreate, OrderRead, OrderStatusUpdate
 from src.services.order_service import (
     MenuItemsNotFoundError,
@@ -26,14 +33,20 @@ async def get_order_or_404(session: DbSession, order_id: int) -> Order:
 @router.post("", response_model=OrderRead, status_code=status.HTTP_201_CREATED)
 async def create_new_order(order_in: OrderCreate, session: DbSession) -> OrderRead:
     try:
-        order = await create_order(session, order_in)
+        with order_creation_duration_seconds.time():
+            order = await create_order(session, order_in)
+
+        orders_created_total.inc()
+        orders_revenue_total.inc(float(order.total_price))
         return OrderRead.model_validate(order)
     except MenuItemsNotFoundError as error:
+        order_creation_errors_total.labels(reason="items_not_found").inc()
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"message": "Menu items not found", "menu_item_ids": error.menu_item_ids},
         ) from error
     except MenuItemsUnavailableError as error:
+        order_creation_errors_total.labels(reason="items_unavailable").inc()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail={"message": "Menu items unavailable", "menu_item_ids": error.menu_item_ids},
@@ -62,5 +75,13 @@ async def change_order_status(
     session: DbSession,
 ) -> OrderRead:
     order = await get_order_or_404(session, order_id)
+    previous_status = order.status
     updated_order = await update_order_status(session, order, status_in.status)
+
+    if previous_status != status_in.status:
+        order_status_changes_total.labels(
+            from_status=previous_status.value,
+            to_status=status_in.status.value,
+        ).inc()
+
     return OrderRead.model_validate(updated_order)
