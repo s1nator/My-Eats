@@ -1,4 +1,5 @@
 import logging
+import asyncio
 import os
 import socket
 import sys
@@ -9,7 +10,9 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 from pythonjsonlogger.json import JsonFormatter
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from starlette.routing import Match
 
 from src.api.v1.menu import router as menu_router
 from src.api.v1.orders import router as orders_router
@@ -61,6 +64,7 @@ for logger_name in ("uvicorn", "uvicorn.error", "uvicorn.access"):
     uvicorn_logger.propagate = False
 
 logger = logging.getLogger(__name__)
+SLO_DEMO_ENABLED = os.getenv("ENVIRONMENT") == "development" and os.getenv("SLO_DEMO") == "1"
 
 
 @asynccontextmanager
@@ -80,12 +84,32 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-Instrumentator().instrument(app).expose(app)
-
 app.include_router(menu_router, prefix="/api/v1")
 app.include_router(orders_router, prefix="/api/v1")
 
 
 @app.get("/health", tags=["Health"])
 async def health_check() -> dict[str, str]:
-    return {"status": "ok"}
+    return {"status": "ok", **({"mode": "slo-demo"} if SLO_DEMO_ENABLED else {})}
+
+
+# Fault injection is registered only in explicitly opted-in development processes.
+if SLO_DEMO_ENABLED:
+    @app.middleware("http")
+    async def demo_fault(request: Request, call_next):
+        if request.url.path.startswith("/api/v1/"):
+            fault = request.headers.get("X-Demo-Fault")
+            if fault == "error":
+                # Instrumentator needs the matched route even on an early response.
+                for route in app.router.routes:
+                    match, child_scope = route.matches(request.scope)
+                    if match == Match.FULL:
+                        request.scope.update(child_scope)
+                        break
+                return JSONResponse({"detail": "Demo failure"}, status_code=503)
+            if fault == "delay":
+                await asyncio.sleep(0.8)
+        return await call_next(request)
+
+
+Instrumentator(excluded_handlers=["/metrics", "/health"]).instrument(app).expose(app)

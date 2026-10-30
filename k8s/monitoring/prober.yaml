@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slo-prober
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: slo-prober
+  template:
+    metadata:
+      labels:
+        app: slo-prober
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '8001'
+        prometheus.io/path: /metrics
+    spec:
+      containers:
+        - name: prober
+          image: python:3.11-slim
+          command: [python, /probe/prober.py]
+          env:
+            - name: PROBE_URL
+              value: http://backend-service:8000/api/v1/menu
+          ports:
+            - containerPort: 8001
+          resources:
+            requests:
+              cpu: 10m
+              memory: 24Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          volumeMounts:
+            - name: script
+              mountPath: /probe
+              readOnly: true
+      volumes:
+        - name: script
+          configMap:
+            name: slo-prober

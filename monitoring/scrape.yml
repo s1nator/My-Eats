@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 5s
+  scrape_timeout: 3s
+scrape_configs:
+  - job_name: my-eats-backend
+    static_configs:
+      - targets: ['backend:8000']
+        labels:
+          app: backend-1
+  - job_name: my-eats-prober
+    static_configs:
+      - targets: ['prober:8001']
+        labels:
+          app: slo-prober

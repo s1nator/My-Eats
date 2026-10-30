@@ -22,7 +22,7 @@ spec:
         prometheus.io/path: "/metrics"
     spec:
       containers:
-      - image: my-eats-backend:v6
+      - image: my-eats-backend:v9
         imagePullPolicy: IfNotPresent
         name: backend-1
         ports:

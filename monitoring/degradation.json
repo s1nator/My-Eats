@@ -1,0 +1,84 @@
+{
+  "checked_at_utc": "2026-10-30T17:31:18Z",
+  "window_seconds": 300,
+  "queries": {
+    "HTTP availability 5m (%)": {
+      "samples": 61,
+      "min": 74.31231485399917,
+      "max": 100.0,
+      "last": 74.31231485399917
+    },
+    "HTTP latency <=500ms 5m (%)": {
+      "samples": 61,
+      "min": 93.56749894202285,
+      "max": 100.0,
+      "last": 93.56749894202285
+    },
+    "Order success 5m (%)": {
+      "samples": 61,
+      "min": 47.263249348392705,
+      "max": 100.0,
+      "last": 47.263249348392705
+    },
+    "Probe (0/1)": {
+      "samples": 61,
+      "min": 0.0,
+      "max": 1.0,
+      "last": 1.0
+    },
+    "TBSLO availability 5m (%)": {
+      "samples": 61,
+      "min": 16.666666666666664,
+      "max": 98.33333333333333,
+      "last": 98.33333333333333
+    },
+    "SLA availability 30d (%)": {
+      "samples": 61,
+      "min": 0.0023148148148148147,
+      "max": 0.011574074074074075,
+      "last": 0.011574074074074075
+    },
+    "SLA error budget remaining (minutes)": {
+      "samples": 61,
+      "min": -43155.8,
+      "max": -43151.8,
+      "last": -43151.8
+    },
+    "SLO HTTP availability (%)": {
+      "samples": 61,
+      "min": 99.5,
+      "max": 99.5,
+      "last": 99.5
+    },
+    "SLO latency (%)": {
+      "samples": 61,
+      "min": 95.0,
+      "max": 95.0,
+      "last": 95.0
+    },
+    "SLO order success (%)": {
+      "samples": 61,
+      "min": 99.0,
+      "max": 99.0,
+      "last": 99.0
+    },
+    "SLO probe availability (%)": {
+      "samples": 61,
+      "min": 99.95,
+      "max": 99.95,
+      "last": 99.95
+    },
+    "SLA availability target (%)": {
+      "samples": 61,
+      "min": 99.9,
+      "max": 99.9,
+      "last": 99.9
+    },
+    "SLI HTTP >= SLO (0/1)": {
+      "samples": 61,
+      "min": 0.0,
+      "max": 1.0,
+      "last": 0.0
+    }
+  }
+}

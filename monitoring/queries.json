@@ -1,0 +1,15 @@
+{
+  "HTTP availability 5m (%)": "100 * (1 - ((sum(increase(http_requests_total{app=\"backend-1\",handler=~\"/api/v1/.*\",status=~\"5..\"}[5m])) or (0 * sum(increase(http_requests_total{app=\"backend-1\",handler=~\"/api/v1/.*\"}[5m])))) / sum(increase(http_requests_total{app=\"backend-1\",handler=~\"/api/v1/.*\"}[5m]))))",
+  "HTTP latency <=500ms 5m (%)": "100 * sum(increase(http_request_duration_seconds_bucket{app=\"backend-1\",handler=~\"/api/v1/.*\",le=\"0.5\"}[5m])) / sum(increase(http_request_duration_seconds_count{app=\"backend-1\",handler=~\"/api/v1/.*\"}[5m]))",
+  "Order success 5m (%)": "100 * sum(increase(my_eats_orders_created_total{app=\"backend-1\"}[5m])) / (sum(increase(my_eats_orders_created_total{app=\"backend-1\"}[5m])) + (sum(increase(my_eats_order_creation_errors_total{app=\"backend-1\"}[5m])) or (0 * sum(increase(my_eats_orders_created_total{app=\"backend-1\"}[5m])))))",
+  "Probe (0/1)": "min(my_eats_probe_success{app=\"slo-prober\"} * on(job,instance) up{app=\"slo-prober\"}) or vector(0)",
+  "TBSLO availability 5m (%)": "100 * avg_over_time((min(my_eats_probe_success{app=\"slo-prober\"} * on(job,instance) up{app=\"slo-prober\"}) or vector(0))[5m:5s])",
+  "SLA availability 30d (%)": "100 * avg_over_time((min(my_eats_probe_success{app=\"slo-prober\"} * on(job,instance) up{app=\"slo-prober\"}) or vector(0))[30d:1m])",
+  "SLA error budget remaining (minutes)": "43.2 - (1 - avg_over_time((min(my_eats_probe_success{app=\"slo-prober\"} * on(job,instance) up{app=\"slo-prober\"}) or vector(0))[30d:1m])) * 43200",
+  "SLO HTTP availability (%)": "vector(99.5)",
+  "SLO latency (%)": "vector(95)",
+  "SLO order success (%)": "vector(99)",
+  "SLO probe availability (%)": "vector(99.95)",
+  "SLA availability target (%)": "vector(99.9)",
+  "SLI HTTP >= SLO (0/1)": "(1 - ((sum(increase(http_requests_total{app=\"backend-1\",handler=~\"/api/v1/.*\",status=~\"5..\"}[5m])) or (0 * sum(increase(http_requests_total{app=\"backend-1\",handler=~\"/api/v1/.*\"}[5m])))) / sum(increase(http_requests_total{app=\"backend-1\",handler=~\"/api/v1/.*\"}[5m])))) >= bool 0.995"
+}

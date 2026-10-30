@@ -1,0 +1,12 @@
+--- a/cmd/engine/main.go
++++ b/cmd/engine/main.go
+@@ -236,6 +236,9 @@
+ 	ignoreDirs := map[string]bool{
+ 		".git": true, "bin": true, "obj": true, "node_modules": true,
+ 		"dist": true, "out": true, ".vs": true, ".idea": true,
++		".venv": true, "venv": true, "env": true, ".env": true,
++		"site-packages": true, "dist-packages": true, "vendor": true,
++		"__pycache__": true, ".tox": true, ".nox": true, ".diagnostics": true,
+ 	}
+ 	supportedExts := map[string]bool{
+ 		".cs": true, ".ts": true, ".js": true, ".tsx": true, ".jsx": true, ".go": true, ".py": true,

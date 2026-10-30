@@ -1,0 +1,38 @@
+# Use only as an override of docker-compose.yml, with project name slo-demo.
+services:
+  db:
+    container_name: my-eats-slo-demo-db
+    environment:
+      POSTGRES_DB: slo_demo
+      POSTGRES_USER: slo_demo
+      POSTGRES_PASSWORD: slo_demo
+  backend:
+    environment:
+      DATABASE_URL: postgresql+asyncpg://slo_demo:slo_demo@db:5432/slo_demo
+      PORT: '8000'
+      ENVIRONMENT: development
+      SLO_DEMO: '1'
+    command: ['sh', '-c', 'alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000']
+  prober:
+    image: python:3.11-slim
+    command: ['python', '/prober.py']
+    environment:
+      PROBE_URL: http://backend:8000/api/v1/menu
+    volumes:
+      - ./monitoring/prober.py:/prober.py:ro
+    ports:
+      - '127.0.0.1:8001:8001'
+    restart: unless-stopped
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.102.1
+    command:
+      - '-promscrape.config=/etc/vm/scrape.yml'
+      - '-retentionPeriod=2'
+    volumes:
+      - ./monitoring/scrape.yml:/etc/vm/scrape.yml:ro
+      - slo_metrics:/victoria-metrics-data
+    ports:
+      - '127.0.0.1:8428:8428'
+    restart: unless-stopped
+volumes:
+  slo_metrics:
